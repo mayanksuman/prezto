@@ -28,3 +28,6 @@
 [submodule "modules/prompt/external/powerlevel9k"]
 	path = modules/prompt/external/powerlevel9k
 	url = https://github.com/bhilburn/powerlevel9k.git
+[submodule "modules/prompt/external/nimble_zsh_prompt"]
+	path = modules/prompt/external/nimble_zsh_prompt
+	url = https://github.com/mayanksuman/nimble_zsh_prompt.git
