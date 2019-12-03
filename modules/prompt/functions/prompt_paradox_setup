@@ -77,12 +77,15 @@ prompt_paradox_set_title() {
 
 
 function prompt_paradox_build_prompt {
-  #prompt_paradox_start_segment black default '%(?::%F{red}✘ )%(!:%F{yellow}⚡ :)%(1j:%F{cyan}⚙ :)%F{202}%n%F{red}@%F{202}%m%f'
+  # Will show ⚡ if shell is running with privileges
+  # Will show ⚙ if background processes are running
   prompt_paradox_start_segment black default '%(!:%F{yellow}⚡ :)%(1j:%F{cyan}⚙ :)%F{202}%n@%m%f'
   prompt_paradox_start_segment blue black '$_prompt_paradox_pwd'
 
-  if [[ -n "$git_info" ]]; then
-    prompt_paradox_start_segment green black '${(e)git_info[ref]}${(e)git_info[status]}'
+  if [[ $PWD != $HOME ]]; then
+	if [[ -n "$git_info" ]]; then
+	  prompt_paradox_start_segment green black '${(e)git_info[ref]}${(e)git_info[status]}'
+	fi
   fi
 
   if [[ -n "$python_info" ]]; then
@@ -137,9 +140,11 @@ function prompt_paradox_precmd {
   # Format PWD.
   _prompt_paradox_pwd=$(prompt-pwd)
 
-  # Get Git repository information.
-  if (( $+functions[git-info] )); then
-    git-info
+  # Get Git repository information if not in home folder.
+  if [[ $PWD != $HOME ]]; then
+    if (( $+functions[git-info] )); then
+      git-info
+    fi
   fi
 
   # Get Python environment information.
@@ -179,6 +184,7 @@ function prompt_paradox_setup {
 
   # Load required functions.
   autoload -Uz add-zsh-hook
+  autoload -Uz editor
 
   # Add hook for calling git-info before each command.
   add-zsh-hook preexec prompt_paradox_preexec
@@ -189,7 +195,7 @@ function prompt_paradox_setup {
 
   # Set editor-info parameters.
   zstyle ':prezto:module:editor:info:completing' format '%B%F{red}...%f%b'
-  zstyle ':prezto:module:editor:info:keymap:primary' format '%B%F{blue}❯%f%b'
+  zstyle ':prezto:module:editor:info:keymap:primary' format '❯'
   zstyle ':prezto:module:editor:info:keymap:primary:overwrite' format '%F{red}♺%f'
   zstyle ':prezto:module:editor:info:keymap:alternate' format '%B%F{red}❮%f%b'
 
@@ -218,14 +224,14 @@ function prompt_paradox_setup {
 
   # %v - ruby version.
   zstyle ':prezto:module:ruby:info:version' format 'ruby:%v'
-  
+
   # Guard against Anaconda/minconda/conda changing the PS1
   export CONDA_CHANGEPS1=no
-  
+
   # Define prompts.
   PROMPT='
 ${(e)$(prompt_paradox_build_prompt)}
-%(?.%F{green}${PARADOX_PROMPT_SYMBOL:-❯ }%f.%F{red}${PARADOX_PROMPT_SYMBOL:-❯ }%f)'
+%B%(?.%F{green}${PARADOX_PROMPT_SYMBOL:-${editor_info[keymap]} }%f.%F{red}${PARADOX_PROMPT_SYMBOL:-${editor_info[keymap]} }%f)%b'
   RPROMPT='%F{blue}[%F{green}%D{%H:%M:%S}%F{blue}]%f'
   SPROMPT='zsh: correct %F{red}%R%f to %F{green}%r%f [nyae]? '
 }
