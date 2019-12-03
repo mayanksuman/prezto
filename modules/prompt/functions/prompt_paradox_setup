@@ -45,36 +45,6 @@ function prompt_paradox_end_segment {
   _prompt_paradox_current_bg=''
 }
 
-prompt_paradox_set_title() {
-	setopt localoptions noshwordsplit
-
-	# Emacs terminal does not support settings the title.
-	(( ${+EMACS} )) && return
-
-	case $TTY in
-		# Don't set title over serial console.
-		/dev/ttyS[0-9]*) return;;
-	esac
-
-	# Show hostname if connected via SSH.
-	local userhostname=
-	if [[ -n "$SSH_CONNECTION" ]]; then
-		# Expand in-place in case ignore-escape is used.
-		userhostname="${(%):-[%n@%m]: }"
-	else
-		userhostname="${(%):-%n: }"
-	fi
-
-	local -a opts
-	case $1 in
-		expand-prompt) opts=(-P);;
-		ignore-escape) opts=(-r);;
-	esac
-
-	# Set title atomically in one print statement so that it works when XTRACE is enabled.
-	print -n $opts $'\e]0;'${userhostname}${2}$'\a'
-}
-
 
 function prompt_paradox_build_prompt {
   # Will show ⚡ if shell is running with privileges
@@ -160,21 +130,10 @@ function prompt_paradox_precmd {
   # Calculate human readable elapsed time for the last command.
   prompt_paradox_check_cmd_exec_time
   unset prompt_paradox_cmd_start_time
-
-  # Shows the full path in the title.
-  prompt_paradox_set_title 'expand-prompt' '%~'
-
 }
 
 function prompt_paradox_preexec {
   typeset -g prompt_paradox_cmd_start_time=$SECONDS
-
-  # Shows the current directory and executed command in the title while a process is active.
-  if [[ $PWD == $HOME ]]; then
-	prompt_paradox_set_title 'ignore-escape' "$2"
-  else
-    prompt_paradox_set_title 'ignore-escape' "$PWD:t: $2"
-  fi
 }
 
 function prompt_paradox_setup {
