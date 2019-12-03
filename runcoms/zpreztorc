@@ -37,7 +37,7 @@ zstyle ':prezto:load' pmodule \
   'completion' \
   'git'\
   'tmux'\
-  'syntax-highlighting'\
+  'fsh'\
   'history-substring-search'\
   'autosuggestions'\
   'prompt'
