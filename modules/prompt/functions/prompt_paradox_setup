@@ -20,7 +20,7 @@ pmodload 'helper'
 # Define variables.
 _prompt_paradox_current_bg='NONE'
 _prompt_paradox_segment_separator=''
-_prompt_paradox_start_time=$SECONDS
+#_prompt_paradox_segment_separator=''
 
 function prompt_paradox_start_segment {
   local bg fg
@@ -45,8 +45,39 @@ function prompt_paradox_end_segment {
   _prompt_paradox_current_bg=''
 }
 
+prompt_paradox_set_title() {
+	setopt localoptions noshwordsplit
+
+	# Emacs terminal does not support settings the title.
+	(( ${+EMACS} )) && return
+
+	case $TTY in
+		# Don't set title over serial console.
+		/dev/ttyS[0-9]*) return;;
+	esac
+
+	# Show hostname if connected via SSH.
+	local userhostname=
+	if [[ -n "$SSH_CONNECTION" ]]; then
+		# Expand in-place in case ignore-escape is used.
+		userhostname="${(%):-[%n@%m]: }"
+	else
+		userhostname="${(%):-%n: }"
+	fi
+
+	local -a opts
+	case $1 in
+		expand-prompt) opts=(-P);;
+		ignore-escape) opts=(-r);;
+	esac
+
+	# Set title atomically in one print statement so that it works when XTRACE is enabled.
+	print -n $opts $'\e]0;'${userhostname}${2}$'\a'
+}
+
+
 function prompt_paradox_build_prompt {
-  prompt_paradox_start_segment black default '%(?::%F{red}✘ )%(!:%F{yellow}⚡ :)%(1j:%F{cyan}⚙ :)%F{blue}%n%F{red}@%F{green}%m%f'
+  prompt_paradox_start_segment black default '%(?::%F{red}✘ )%(!:%F{yellow}⚡ :)%(1j:%F{cyan}⚙ :)%F{202}%n%F{red}@%F{202}%m%f'
   prompt_paradox_start_segment blue black '$_prompt_paradox_pwd'
 
   if [[ -n "$git_info" ]]; then
@@ -57,26 +88,45 @@ function prompt_paradox_build_prompt {
     prompt_paradox_start_segment white black '${(e)python_info[virtualenv]}'
   fi
 
+  if [[ -n "$ruby_info" ]]; then
+    prompt_paradox_start_segment red black '${(e)ruby_info[version]}'
+  fi
+
+  if [ -n "$prompt_paradox_cmd_exec_time" ]; then
+	  prompt_paradox_start_segment black 202 "$prompt_paradox_cmd_exec_time"
+	  unset prompt_paradox_cmd_exec_time
+  fi
+
   prompt_paradox_end_segment
 }
 
-prompt_paradox_print_elapsed_time() {
-  local end_time=$(( SECONDS - _prompt_paradox_start_time ))
-  local hours minutes seconds remainder
+# Turns seconds into human readable time.
+# 165392 => 1d 21h 56m 32s
+# https://github.com/sindresorhus/pretty-time-zsh
+prompt_paradox_human_time_to_var() {
+	local human total_seconds=$1 var=$2
+	local days=$(( total_seconds / 60 / 60 / 24 ))
+	local hours=$(( total_seconds / 60 / 60 % 24 ))
+	local minutes=$(( total_seconds / 60 % 60 ))
+	local seconds=$(( total_seconds % 60 ))
+	(( days > 0 )) && human+="${days}d "
+	(( hours > 0 )) && human+="${hours}h "
+	(( minutes > 0 )) && human+="${minutes}m "
+	human+="${seconds}s"
 
-  if (( end_time >= 3600 )); then
-    hours=$(( end_time / 3600 ))
-    remainder=$(( end_time % 3600 ))
-    minutes=$(( remainder / 60 ))
-    seconds=$(( remainder % 60 ))
-    print -P "%B%F{red}>>> elapsed time ${hours}h${minutes}m${seconds}s%b"
-  elif (( end_time >= 60 )); then
-    minutes=$(( end_time / 60 ))
-    seconds=$(( end_time % 60 ))
-    print -P "%B%F{yellow}>>> elapsed time ${minutes}m${seconds}s%b"
-  elif (( end_time > 10 )); then
-    print -P "%B%F{green}>>> elapsed time ${end_time}s%b"
-  fi
+	# Store human readable time in a variable as specified by the caller
+	typeset -g "${var}"="${human}"
+}
+
+# Stores (into prompt_paradox_cmd_exec_time) the execution
+# time of the last command if set threshold was exceeded.
+prompt_paradox_check_cmd_exec_time() {
+	integer elapsed
+	(( elapsed = SECONDS - ${prompt_paradox_cmd_start_time:-$SECONDS} ))
+	typeset -g prompt_paradox_cmd_exec_time=
+	(( elapsed > ${PARADOX_CMD_MAX_EXEC_TIME:-10} )) && {
+		prompt_paradox_human_time_to_var $elapsed "prompt_paradox_cmd_exec_time"
+	}
 }
 
 function prompt_paradox_precmd {
@@ -96,12 +146,29 @@ function prompt_paradox_precmd {
     python-info
   fi
 
-  # Calculate and print the elapsed time.
-  prompt_paradox_print_elapsed_time
+  # Get ruby evironment information
+  if (( $+functions[ruby-info] )); then
+    ruby-info
+  fi
+
+  # Calculate human readable elapsed time for the last command.
+  prompt_paradox_check_cmd_exec_time
+  unset prompt_paradox_cmd_start_time
+
+  # Shows the full path in the title.
+  prompt_paradox_set_title 'expand-prompt' '%~'
+
 }
 
 function prompt_paradox_preexec {
-  _prompt_paradox_start_time="$SECONDS"
+  typeset -g prompt_paradox_cmd_start_time=$SECONDS
+
+  # Shows the current directory and executed command in the title while a process is active.
+  if [[ $PWD == $HOME ]]; then
+	prompt_paradox_set_title 'ignore-escape' "$2"
+  else
+    prompt_paradox_set_title 'ignore-escape' "$PWD:t: $2"
+  fi
 }
 
 function prompt_paradox_setup {
@@ -146,8 +213,14 @@ function prompt_paradox_setup {
     'status' '%s%D%A%B%S%a%d%m%r%U%u'
 
   # %v - virtualenv name.
-  zstyle ':prezto:module:python:info:virtualenv' format 'virtualenv:%v'
+  zstyle ':prezto:module:python:info:virtualenv' format 'pyvenv:%v'
 
+  # %v - ruby version.
+  zstyle ':prezto:module:ruby:info:version' format 'ruby:%v'
+  
+  # Guard against Anaconda/minconda/conda changing the PS1
+  export CONDA_CHANGEPS1=no
+  
   # Define prompts.
   PROMPT='
 ${(e)$(prompt_paradox_build_prompt)}
