@@ -33,15 +33,14 @@ zstyle ':prezto:load' pmodule \
   'history' \
   'directory' \
   'spectrum' \
-  'utility' \
+  'utility'\
   'completion' \
   'git'\
-  'prompt'\
-  'autosuggestions'\
   'tmux'\
   'syntax-highlighting'\
-  'history-substring-search'
-
+  'history-substring-search'\
+  'autosuggestions'\
+  'prompt'
 #
 # Autosuggestions
 #
@@ -62,7 +61,7 @@ zstyle ':prezto:load' pmodule \
 #
 
 # Set the key mapping style to 'emacs' or 'vi'.
-#zstyle ':prezto:module:editor' key-bindings 'vi'
+zstyle ':prezto:module:editor' key-bindings 'vi'
 
 # Auto convert .... to ../..
 zstyle ':prezto:module:editor' dot-expansion 'yes'
@@ -169,9 +168,9 @@ zstyle ':prezto:module:prompt' theme 'paradox'
 
 # Set syntax highlighters.
 # By default, only the main highlighter is enabled.
-zstyle ':prezto:module:syntax-highlighting' highlighters \
-  'main' \
-  'brackets' 
+#zstyle ':prezto:module:syntax-highlighting' highlighters \
+#  'main' \
+#  'brackets' 
 
 # Set syntax highlighting styles.
 #zstyle ':prezto:module:syntax-highlighting' styles \
@@ -180,8 +179,8 @@ zstyle ':prezto:module:syntax-highlighting' highlighters \
 #  'function' 'bg=blue'
 
 # Set syntax pattern styles.
-zstyle ':prezto:module:syntax-highlighting' pattern \
-  'rm*-rf*' 'fg=white,bold,bg=red'
+#zstyle ':prezto:module:syntax-highlighting' pattern \
+#  'rm*-rf*' 'fg=white,bold,bg=red'
 
 #
 # Terminal

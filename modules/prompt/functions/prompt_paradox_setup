@@ -184,7 +184,6 @@ function prompt_paradox_setup {
 
   # Load required functions.
   autoload -Uz add-zsh-hook
-  autoload -Uz editor
 
   # Add hook for calling git-info before each command.
   add-zsh-hook preexec prompt_paradox_preexec
@@ -231,7 +230,7 @@ function prompt_paradox_setup {
   # Define prompts.
   PROMPT='
 ${(e)$(prompt_paradox_build_prompt)}
-%B%(?.%F{green}${PARADOX_PROMPT_SYMBOL:-${editor_info[keymap]} }%f.%F{red}${PARADOX_PROMPT_SYMBOL:-${editor_info[keymap]} }%f)%b'
+%B%(?.%F{green}${editor_info[keymap]} %f.%F{red}${editor_info[keymap]} %f)%b'
   RPROMPT='%F{blue}[%F{green}%D{%H:%M:%S}%F{blue}]%f'
   SPROMPT='zsh: correct %F{red}%R%f to %F{green}%r%f [nyae]? '
 }
