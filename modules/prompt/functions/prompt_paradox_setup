@@ -185,6 +185,9 @@ function prompt_paradox_setup {
 
   # Guard against Anaconda/minconda/conda changing the PS1
   export CONDA_CHANGEPS1=no
+  
+  # Guard against pyenv-virtualenv changing the PS1
+  export PYENV_VIRTUALENV_DISABLE_PROMPT=0
 
   # Define prompts.
   PROMPT='
