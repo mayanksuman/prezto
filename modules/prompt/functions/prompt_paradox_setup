@@ -178,14 +178,14 @@ function prompt_paradox_setup {
     'status' '%s%D%A%B%S%a%d%m%r%U%u'
 
   # %v - virtualenv name.
-  zstyle ':prezto:module:python:info:virtualenv' format 'pyvenv:%v'
+  zstyle ':prezto:module:python:info:virtualenv' format ':%v'
 
   # %v - ruby version.
-  zstyle ':prezto:module:ruby:info:version' format 'ruby:%v'
+  zstyle ':prezto:module:ruby:info:version' format ':%v'
 
   # Guard against Anaconda/minconda/conda changing the PS1
   export CONDA_CHANGEPS1=no
-  
+
   # Guard against pyenv-virtualenv changing the PS1
   export PYENV_VIRTUALENV_DISABLE_PROMPT=0
 
