@@ -28,12 +28,16 @@
 [submodule "modules/prompt/external/powerlevel9k"]
 	path = modules/prompt/external/powerlevel9k
 	url = https://github.com/bhilburn/powerlevel9k.git
+	shallow = true
 [submodule "modules/prompt/external/nimble_zsh_prompt"]
 	path = modules/prompt/external/nimble_zsh_prompt
 	url = https://github.com/mayanksuman/nimble_zsh_prompt.git
+	shallow = true
 [submodule "modules/prompt/external/powerlevel10k"]
 	path = modules/prompt/external/powerlevel10k
 	url = https://github.com/romkatv/powerlevel10k.git
+	shallow = true
 [submodule "modules/fsh/external"]
 	path = modules/fsh/external
 	url = https://github.com/zdharma/fast-syntax-highlighting.git
+	shallow = true
